@@ -14,7 +14,7 @@ export default function Navbar() {
 
                 {/* Login Button */}
                 <Link
-                    href="/login"
+                    href="/signup"
                     className=""
                 >
                     <Button>

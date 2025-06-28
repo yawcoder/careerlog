@@ -2,17 +2,32 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { useForm } from "react-hook-form";
+
+interface LoginFormInputs {
+    email: string;
+    password: string;
+}
 
 export default function Login() {
+
+    const {register, handleSubmit} = useForm<LoginFormInputs>();
+
+    const onSubmit = (formData: LoginFormInputs) => {
+        // console.log(formData);
+    }
+
     return (
         <div className="w-full md:w-1/2 max-w-md rounded-lg border px-6 py-8 shadow-sm">
             <h3 className="mb-4 text-lg font-semibold">Log in to your account</h3>
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium mb-1">Email</label>
                     <Input
                         type="email"
                         placeholder="you@example.com"
+                        required
+                        {...register("email")}
                     />
                 </div>
                 <div>
@@ -20,6 +35,8 @@ export default function Login() {
                     <Input
                         type="password"
                         placeholder="••••••••"
+                        required
+                        {...register("password")}
                     />
                 </div>
                 <Button
