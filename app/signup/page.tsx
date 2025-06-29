@@ -1,8 +1,11 @@
 "use client"
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signUp } from "@/lib/auth";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface SignupFormInputs {
@@ -13,13 +16,43 @@ interface SignupFormInputs {
     confirmPassword: string;
 }
 
+const errorMessages: Record<string, string> = {
+    "email-already-in-use": "This email is already registered.",
+    "invalid-email": "Please enter a valid email address.",
+    "weak-password": "Password should be at least 6 characters.",
+    "missing-password": "Please enter a password.",
+};
+
+function getFriendlyErrorMessage(error: string) {
+    const match = error.match(/\(auth\/([^)]+)\)/);
+    if (match && match[1]) {
+        return errorMessages[match[1]] || "An unexpected error occurred. Please try again.";
+    }
+    return error;
+}
+
 export default function SignUpPage() {
+    const router = useRouter();
+    const [signUpError, setSignupError] = useState<String | null>(null)
+    const [alertBox, setAlertBox] = useState(false);
+    const [loading, setLoading] = useState(false)
 
     const {register, handleSubmit, watch, formState: { errors }} = useForm<SignupFormInputs>();
 
-    const onSubmit = (formData: SignupFormInputs) => {
-        // console.log(formData)
-        signUp(formData);
+    const onSubmit = async (formData: SignupFormInputs) => {
+        setLoading(true)
+        setSignupError(null)
+        const result = await signUp(formData)
+        if (result && result.error) {
+            setSignupError(getFriendlyErrorMessage(result.error))
+            setAlertBox(true)
+            setLoading(false)
+        } else {
+            setSignupError("Please check your inbox for comfirmation")
+            setAlertBox(true);
+            setLoading(false)
+        }
+        // Optionally handle success (e.g., redirect or show success message)
     }
 
     const password = watch("password");
@@ -101,7 +134,7 @@ export default function SignUpPage() {
                         type="submit"
                         className="w-full rounded-md bg-primary px-4 py-2 hover:bg-primary/90 cursor-pointer"
                     >
-                        Sign Up
+                        {loading ? "Please Wait..." : "Submit"}
                     </Button>
                 </form>
 
@@ -112,6 +145,22 @@ export default function SignUpPage() {
                     </Link>
                 </p>
             </div>
+            <AlertDialog open={alertBox} onOpenChange={setAlertBox}>
+                <AlertDialogContent>
+                    <AlertDialogTitle>Message</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {signUpError}
+                    </AlertDialogDescription>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => {
+                            setAlertBox(false);
+                            if(signUpError === "Please check your inbox for comfirmation"){
+                                router.push("/")
+                            }
+                        }}>Done</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </main>
     )
 }

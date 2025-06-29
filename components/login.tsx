@@ -3,18 +3,55 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useForm } from "react-hook-form";
+import { logIn } from "@/lib/auth";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { auth } from "@/app/firebaseConfig";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "./ui/alert-dialog";
 
 interface LoginFormInputs {
     email: string;
     password: string;
 }
 
+const errorMessages: Record<string, string> = {
+    "invalid-credential": "Email or Password is invalid"
+};
+
+function getFriendlyErrorMessage(error: string) {
+    const match = error.match(/\(auth\/([^)]+)\)/);
+    if (match && match[1]) {
+        return errorMessages[match[1]] || "An unexpected error occurred. Please try again.";
+    }
+    return error;
+}
+
 export default function Login() {
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+    const [signUpError, setSignupError] = useState<String | null>(null)
+    const [alertBox, setAlertBox] = useState(false);
+    const { register, handleSubmit } = useForm<LoginFormInputs>();
 
-    const {register, handleSubmit} = useForm<LoginFormInputs>();
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                router.replace("/dashboard")
+            }
+        });
+        return () => unsubscribe();
+    }, [router]);
 
-    const onSubmit = (formData: LoginFormInputs) => {
-        // console.log(formData);
+
+    const onSubmit = async (formData: LoginFormInputs) => {
+        setLoading(true);
+        const result = await logIn(formData);
+        if (result && result.error) {
+            setAlertBox(true);
+            setSignupError(getFriendlyErrorMessage(result.error));
+            setLoading(false)
+        }
     }
 
     return (
@@ -43,7 +80,7 @@ export default function Login() {
                     type="submit"
                     className="w-full rounded-md bg-primary px-4 py-2 hover:bg-primary/90 hover: cursor-pointer"
                 >
-                    Log In
+                    {loading ? "Please Wait..." : "Log In"}
                 </Button>
             </form>
             <p className="mt-4 text-center text-sm text-muted-foreground">
@@ -52,6 +89,19 @@ export default function Login() {
                     Sign up
                 </Link>
             </p>
+            <AlertDialog open={alertBox} onOpenChange={setAlertBox}>
+                <AlertDialogContent>
+                    <AlertDialogTitle>Message</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {signUpError}
+                    </AlertDialogDescription>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => {
+                            setAlertBox(false);
+                        }}>Done</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

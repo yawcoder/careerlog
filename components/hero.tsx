@@ -1,6 +1,3 @@
-import Link from 'next/link'
-import { Input } from './ui/input'
-import { Button } from './ui/button'
 import Login from './login'
 
 export default function Hero() {

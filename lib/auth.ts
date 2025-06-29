@@ -1,5 +1,5 @@
 import { auth } from '@/app/firebaseConfig'
-import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword } from 'firebase/auth'
+import { createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from 'firebase/auth'
 
 interface SignupFormInputs {
     firstName: string;
@@ -9,24 +9,32 @@ interface SignupFormInputs {
     confirmPassword: string;
 }
 
+interface LoginFormInputs {
+  email: string
+  password: string
+}
+
 export async function signUp(formData: SignupFormInputs) {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password)
     // return { user: userCredential.user, error: null }
     // console.log(userCredential.user)
     if (userCredential.user){
+      await updateProfile(userCredential.user, {displayName: `${formData.firstName} ${formData.lastName}`})
       await sendEmailVerification(userCredential.user)
     }
-  } catch (error: any) {
-    return { user: null, error: error.message }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    return { user: null, error: message }
   }
 }
 
-export async function logIn(email: string, password: string) {
+export async function logIn(formData: LoginFormInputs) {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password)
+    const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password)
     return { user: userCredential.user, error: null }
-  } catch (error: any) {
-    return { user: null, error: error.message }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    return { user: null, error: message }
   }
 }
