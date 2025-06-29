@@ -1,5 +1,5 @@
 import { auth } from '@/app/firebaseConfig'
-import { createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, updateProfile } from 'firebase/auth'
 
 interface SignupFormInputs {
     firstName: string;

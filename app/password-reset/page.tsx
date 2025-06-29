@@ -5,6 +5,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { auth } from "../firebaseConfig";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface PasswordResetEmailInput {
     email: string
@@ -13,15 +14,20 @@ interface PasswordResetEmailInput {
 export default function ResetPassword() {
     const {register, handleSubmit} = useForm<PasswordResetEmailInput>();
     const [loading, setLoading] = useState(false)
+    const [alertBox, setAlertBox] = useState(false);
+    const [message, setMessage] = useState<string | null>(null)
 
     const onSubmit = async (formData: PasswordResetEmailInput) => {
         setLoading(true);
         try{
             await sendPasswordResetEmail(auth, formData.email)
+            setMessage("Please check your inbox for instructions on reseting your password")
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : String(error);
-            return { error: message }
+            setMessage(message);
         }
+        setAlertBox(true)
+        setLoading(false);
     }
 
     return (
@@ -47,6 +53,19 @@ export default function ResetPassword() {
                     </Button>
                 </form>
             </div>
+            <AlertDialog open={alertBox} onOpenChange={setAlertBox}>
+                <AlertDialogContent>
+                    <AlertDialogTitle>Message</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {message}
+                    </AlertDialogDescription>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => {
+                            setAlertBox(false);
+                        }}>Done</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </main>
     )
 }

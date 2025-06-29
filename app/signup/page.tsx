@@ -33,7 +33,7 @@ function getFriendlyErrorMessage(error: string) {
 
 export default function SignUpPage() {
     const router = useRouter();
-    const [signUpError, setSignupError] = useState<String | null>(null)
+    const [signUpError, setSignupError] = useState<string | null>(null)
     const [alertBox, setAlertBox] = useState(false);
     const [loading, setLoading] = useState(false)
 

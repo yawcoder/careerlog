@@ -30,7 +30,7 @@ function getFriendlyErrorMessage(error: string) {
 export default function Login() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const [signUpError, setSignupError] = useState<String | null>(null)
+    const [signUpError, setSignupError] = useState<string | null>(null)
     const [alertBox, setAlertBox] = useState(false);
     const { register, handleSubmit } = useForm<LoginFormInputs>();
 
