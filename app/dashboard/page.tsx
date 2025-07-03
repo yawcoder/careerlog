@@ -6,6 +6,9 @@ import { auth } from "@/app/firebaseConfig";
 import TotalApplications from "@/components/total-applications";
 import ApplicationsPerStatus from "@/components/applications-per-status";
 import RecentApplications from "@/components/recent-applications";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
 export default function Dashboard() {
     const router = useRouter();
@@ -24,7 +27,7 @@ export default function Dashboard() {
 
     // Mock data - replace with actual data from your backend/database
     const totalApplicationsCount = 12;
-    
+
     const statusCounts = [
         { status: "Applied", count: 5, color: "blue" },
         { status: "Interview", count: 3, color: "yellow" },
@@ -67,14 +70,22 @@ export default function Dashboard() {
     return (
         <div className="min-h-screen bg-background p-6">
             <div className="max-w-7xl mx-auto">
-                <h1 className="text-3xl font-bold text-foreground mb-8">Dashboard</h1>
-                
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+                    <Link href="/new-application">
+                        <Button className="flex items-center gap-2 cursor-pointer">
+                            <Plus className="h-4 w-4" />
+                            New Application
+                        </Button>
+                    </Link>
+                </div>
+
                 {/* Top row with Total Applications and Applications per Status side by side */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <TotalApplications totalCount={totalApplicationsCount} />
                     <ApplicationsPerStatus statusCounts={statusCounts} />
                 </div>
-                
+
                 {/* Recent Applications full width below */}
                 <RecentApplications applications={recentApplications} />
             </div>
