@@ -63,10 +63,10 @@ export default function Navbar() {
                                 <SheetContent side="right" className="w-56 p-0">
                                     <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                                     <nav className="flex flex-col gap-2 p-4">
-                                        <Link href="/dashboard" className="py-2 px-3 rounded hover:bg-gray-100 transition font-medium">Dashboard</Link>
-                                        <Link href="/applications" className="py-2 px-3 rounded hover:bg-gray-100 transition font-medium">My Applications</Link>
-                                        <Link href="/analytics" className="py-2 px-3 rounded hover:bg-gray-100 transition font-medium">Analytics</Link>
-                                        <Link href="/settings" className="py-2 px-3 rounded hover:bg-gray-100 transition font-medium">Settings</Link>
+                                        <Link href="/dashboard" className="py-2 px-3 rounded dark:hover:text-black hover:bg-gray-100 transition font-medium">Dashboard</Link>
+                                        <Link href="/applications" className="py-2 px-3 rounded dark:hover:text-black hover:bg-gray-100 transition font-medium">My Applications</Link>
+                                        <Link href="/analytics" className="py-2 px-3 rounded dark:hover:text-black hover:bg-gray-100 transition font-medium">Analytics</Link>
+                                        <Link href="/settings" className="py-2 px-3 rounded dark:hover:text-black hover:bg-gray-100 transition font-medium">Settings</Link>
                                         <div className="border-t my-2" />
                                         <span className="block px-3 py-2 text-sm text-gray-500">Welcome back, {userLoggedIn.displayName}</span>
                                         <Button onClick={handleSignOut} className="mt-2 w-full">
