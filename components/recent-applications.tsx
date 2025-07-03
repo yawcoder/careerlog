@@ -3,7 +3,7 @@ import { Clock, MapPin, Building } from "lucide-react";
 interface RecentApplication {
   id: string;
   company: string;
-  position: string;
+  role: string;
   location: string;
   appliedDate: string;
   status: string;
@@ -49,7 +49,7 @@ export default function RecentApplications({ applications }: RecentApplicationsP
             <div key={app.id} className="border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-card-foreground mb-1">{app.position}</h4>
+                  <h4 className="font-semibold text-card-foreground mb-1">{app.role}</h4>
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <Building className="h-4 w-4" />

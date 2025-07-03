@@ -40,7 +40,7 @@ export default function Dashboard() {
         {
             id: "1",
             company: "Tech Corp",
-            position: "Frontend Developer",
+            role: "Frontend Developer",
             location: "San Francisco, CA",
             appliedDate: "2025-07-01",
             status: "Applied"
@@ -48,7 +48,7 @@ export default function Dashboard() {
         {
             id: "2",
             company: "StartupXYZ",
-            position: "Full Stack Engineer",
+            role: "Full Stack Engineer",
             location: "Remote",
             appliedDate: "2025-06-28",
             status: "Interview"
@@ -56,7 +56,7 @@ export default function Dashboard() {
         {
             id: "3",
             company: "Big Company",
-            position: "Software Engineer",
+            role: "Software Engineer",
             location: "New York, NY",
             appliedDate: "2025-06-25",
             status: "Rejected"
