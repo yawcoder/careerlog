@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Timestamp } from "firebase/firestore";
+import { Timestamp, collection, addDoc } from "firebase/firestore";
 import { useForm, Controller } from "react-hook-form";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/app/firebaseConfig";
+import { auth, db } from "@/app/firebaseConfig";
 
 interface JobApplicationInputs {
     company: string;
@@ -29,8 +29,9 @@ interface JobApplicationInputs {
 export default function NewApplication() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const {register, handleSubmit, control, formState: { errors }} = useForm<JobApplicationInputs>({
+    const {register, handleSubmit, control, formState: { errors }, reset} = useForm<JobApplicationInputs>({
         defaultValues: {
             company: "",
             role: "",
@@ -53,18 +54,45 @@ export default function NewApplication() {
         return () => unsubscribe();
     }, [router]);
 
-    const onSubmit = (data: JobApplicationInputs) => {
-        
-        const formattedData = {
-            ...data,
-            appliedDate: data.appliedDate ? data.appliedDate.toISOString().split('T')[0] : '', //Convert date to string when saving to db
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now()
-        };
-        
-        console.log("Formatted for database:", formattedData);
-        console.log("Current user:", user);
-        
+    const onSubmit = async (data: JobApplicationInputs) => {
+        if (!user) {
+            console.error("User not authenticated");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            const applicationData = {
+                company: data.company,
+                role: data.role,
+                location: data.location,
+                status: data.status,
+                appliedDate: data.appliedDate ? data.appliedDate.toISOString().split('T')[0] : '', // Convert Date to string (YYYY-MM-DD)
+                notes: data.notes || "",
+                resumeUrl: data.resumeUrl || "",
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now()
+            };
+
+            // Save to Firestore: users/{userId}/applications/{applicationId}
+            const applicationsRef = collection(db, 'users', user.uid, 'applications');
+            const docRef = await addDoc(applicationsRef, applicationData);
+
+            console.log("Application saved with ID: ", docRef.id);
+            console.log(user.uid);
+            
+            // Reset form and redirect to dashboard
+            reset();
+            router.push('/dashboard');
+            
+        } catch (error) {
+            console.error("Error adding application: ", error);
+            // You could show a toast notification here
+            alert("Error saving application. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (!user) {
@@ -227,12 +255,14 @@ export default function NewApplication() {
                     <div className="flex gap-4 pt-4">
                         <Button
                             type="submit"
-                            className="flex-1 bg-primary text-primary-foreground py-2 px-4 rounded-md font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
+                            disabled={isSubmitting}
+                            className="flex-1 bg-primary text-primary-foreground py-2 px-4 rounded-md font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors disabled:opacity-50"
                         >
-                            Save Application
+                            {isSubmitting ? "Saving..." : "Save Application"}
                         </Button>
                         <Button
                             type="button"
+                            onClick={() => router.push('/dashboard')}
                             className="px-6 py-2 border border-border rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
                         >
                             Cancel
