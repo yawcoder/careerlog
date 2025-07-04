@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/app/firebaseConfig";
+import { auth, db } from "@/app/firebaseConfig";
+import { collection, query, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
 import TotalApplications from "@/components/total-applications";
 import ApplicationsPerStatus from "@/components/applications-per-status";
 import RecentApplications from "@/components/recent-applications";
@@ -10,9 +11,24 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
+interface ApplicationData {
+    id: string;
+    company: string;
+    role: string;
+    location: string;
+    status: 'Applied' | 'Interview' | 'Rejected' | 'Offered' | 'Withdrawn';
+    appliedDate: Date;
+    notes?: string;
+    resumeUrl?: string;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+
 export default function Dashboard() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
+    const [applications, setApplications] = useState<ApplicationData[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -25,45 +41,75 @@ export default function Dashboard() {
         return () => unsubscribe();
     }, [router]);
 
-    // Mock data - replace with actual data from your backend/database
-    const totalApplicationsCount = 12;
+    // Fetch applications when user is available
+    useEffect(() => {
+        if (!user) return;
 
-    const statusCounts = [
-        { status: "Applied", count: 5, color: "blue" },
-        { status: "Interview", count: 3, color: "yellow" },
-        { status: "Rejected", count: 2, color: "red" },
-        { status: "Offered", count: 1, color: "green" },
-        { status: "Withdrawn", count: 1, color: "gray" }
-    ];
+        const applicationsRef = collection(db, 'users', user.uid, 'applications');
+        const q = query(applicationsRef, orderBy('createdAt', 'desc'));
 
-    const recentApplications = [
-        {
-            id: "1",
-            company: "Tech Corp",
-            role: "Frontend Developer",
-            location: "San Francisco, CA",
-            appliedDate: "2025-07-01",
-            status: "Applied"
-        },
-        {
-            id: "2",
-            company: "StartupXYZ",
-            role: "Full Stack Engineer",
-            location: "Remote",
-            appliedDate: "2025-06-28",
-            status: "Interview"
-        },
-        {
-            id: "3",
-            company: "Big Company",
-            role: "Software Engineer",
-            location: "New York, NY",
-            appliedDate: "2025-06-25",
-            status: "Rejected"
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const applicationsData = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    company: data.company ?? "",
+                    role: data.role ?? "",
+                    location: data.location ?? "",
+                    status: data.status ?? "Applied",
+                    appliedDate: typeof data.appliedDate === 'string' ? new Date(data.appliedDate) : new Date(),
+                    notes: data.notes,
+                    resumeUrl: data.resumeUrl,
+                    createdAt: data.createdAt,
+                    updatedAt: data.updatedAt,
+                } as ApplicationData;
+            });
+            setApplications(applicationsData);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching applications:", error);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [user]);
+
+    // Calculate dashboard metrics from real data
+    const totalApplicationsCount = applications.length;
+
+    const statusCounts = applications.reduce((acc, app) => {
+        const statusMap = {
+            'Applied': { color: 'blue' },
+            'Interview': { color: 'yellow' },
+            'Rejected': { color: 'red' },
+            'Offered': { color: 'green' },
+            'Withdrawn': { color: 'gray' }
+        };
+
+        const existingStatus = acc.find(item => item.status === app.status);
+        if (existingStatus) {
+            existingStatus.count += 1;
+        } else {
+            acc.push({
+                status: app.status,
+                count: 1,
+                color: statusMap[app.status as keyof typeof statusMap]?.color || 'gray'
+            });
         }
-    ];
+        return acc;
+    }, [] as { status: string; count: number; color: string; }[]);
 
-    if (!user) {
+    // Get recent applications (first 3)
+    const recentApplications = applications.slice(0, 3).map(app => ({
+        id: app.id,
+        company: app.company,
+        role: app.role,
+        location: app.location,
+        appliedDate: app.appliedDate instanceof Date ? app.appliedDate.toISOString() : String(app.appliedDate),
+        status: app.status
+    }));
+
+    if (!user || loading) {
         return <div>Loading...</div>;
     }
 

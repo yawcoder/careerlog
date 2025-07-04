@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth, db } from "@/app/firebaseConfig";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface JobApplicationInputs {
     company: string;
@@ -30,6 +31,9 @@ export default function NewApplication() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [alertBox, setAlertBox] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const {register, handleSubmit, control, formState: { errors }, reset} = useForm<JobApplicationInputs>({
         defaultValues: {
@@ -80,18 +84,32 @@ export default function NewApplication() {
             const docRef = await addDoc(applicationsRef, applicationData);
 
             console.log("Application saved with ID: ", docRef.id);
-            console.log(user.uid);
             
-            // Reset form and redirect to dashboard
+            // Show success message
+            setAlertMessage(`Application for ${data.company} saved successfully!`);
+            setIsSuccess(true);
+            setAlertBox(true);
+            
+            // Reset form
             reset();
-            router.push('/dashboard');
             
         } catch (error) {
             console.error("Error adding application: ", error);
-            // You could show a toast notification here
-            alert("Error saving application. Please try again.");
+            
+            // Show error message
+            setAlertMessage("Error saving application. Please try again.");
+            setIsSuccess(false);
+            setAlertBox(true);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleAlertClose = () => {
+        setAlertBox(false);
+        if (isSuccess) {
+            // Only redirect to dashboard on success
+            router.push('/dashboard');
         }
     };
 
@@ -270,6 +288,21 @@ export default function NewApplication() {
                     </div>
                 </form>
             </div>
+            <AlertDialog open={alertBox} onOpenChange={setAlertBox}>
+                <AlertDialogContent>
+                    <AlertDialogTitle>
+                        {isSuccess ? "Success!" : "Error"}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {alertMessage}
+                    </AlertDialogDescription>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={handleAlertClose}>
+                            {isSuccess ? "Go to Dashboard" : "Try Again"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
