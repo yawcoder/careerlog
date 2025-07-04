@@ -9,6 +9,10 @@ import { useForm, Controller } from "react-hook-form";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "@/app/firebaseConfig";
 
 interface JobApplicationInputs {
     company: string;
@@ -23,6 +27,9 @@ interface JobApplicationInputs {
 }
 
 export default function NewApplication() {
+    const router = useRouter();
+    const [user, setUser] = useState<User | null>(null);
+
     const {register, handleSubmit, control, formState: { errors }} = useForm<JobApplicationInputs>({
         defaultValues: {
             company: "",
@@ -35,10 +42,34 @@ export default function NewApplication() {
         }
     });
 
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                router.replace("/");
+            } else {
+                setUser(user);
+            }
+        });
+        return () => unsubscribe();
+    }, [router]);
+
     const onSubmit = (data: JobApplicationInputs) => {
-        console.log("Form data:", data);
-        // TODO: Add your submission logic here
+        
+        const formattedData = {
+            ...data,
+            appliedDate: data.appliedDate ? data.appliedDate.toISOString().split('T')[0] : '', //Convert date to string when saving to db
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now()
+        };
+        
+        console.log("Formatted for database:", formattedData);
+        console.log("Current user:", user);
+        
     };
+
+    if (!user) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="min-h-screen bg-background p-6">
