@@ -127,7 +127,7 @@ export default function ApplicationDetail() {
                         <Building className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
                         <h3 className="text-lg font-semibold text-foreground mb-2">Application not found</h3>
                         <p className="text-muted-foreground mb-6">
-                            The application you're looking for doesn't exist or you don't have access to it.
+                            The application you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
                         </p>
                         <Link href="/applications">
                             <Button>

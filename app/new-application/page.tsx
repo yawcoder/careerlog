@@ -19,7 +19,7 @@ interface JobApplicationInputs {
     company: string;
     role: string;
     location: string;
-    status: 'Applied' | 'Interview' | 'Rejected' | 'Offered' | 'Withdrawn';
+    status?: 'Applied' | 'Interview' | 'Rejected' | 'Offered' | 'Withdrawn';
     appliedDate: Date;
     notes?: string;
     resumeUrl?: string;
@@ -40,7 +40,7 @@ export default function NewApplication() {
             company: "",
             role: "",
             location: "",
-            status: "" as any, // This ensures the Select starts with an empty string instead of undefined
+            status: undefined, // This ensures the Select starts with undefined instead of a string
             appliedDate: undefined,
             notes: "",
             resumeUrl: ""
