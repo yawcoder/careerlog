@@ -131,8 +131,8 @@ export default function ApplicationDetail() {
                         </p>
                         <Link href="/applications">
                             <Button>
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Back to Applications
+                                <ArrowLeft className="h-4 w-4 lg:mr-2" />
+                                <span className="hidden md:inline">Back to Applications</span>
                             </Button>
                         </Link>
                     </div>
@@ -149,8 +149,8 @@ export default function ApplicationDetail() {
                     <div className="flex items-center space-x-4">
                         <Link href="/applications">
                             <Button variant="outline" size="sm">
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Back to Applications
+                                <ArrowLeft className="h-4 w-4 lg:mr-2" />
+                                <span className="hidden md:inline">Back to Applications</span>
                             </Button>
                         </Link>
                         <div>

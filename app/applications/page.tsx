@@ -124,7 +124,8 @@ export default function Applications() {
                     <Link href="/new-application">
                         <Button className="flex items-center gap-2">
                             <Plus className="h-4 w-4" />
-                            New Application
+                            <span className="hidden sm:inline">New Application</span>
+                            <span className="sm:hidden">New</span>
                         </Button>
                     </Link>
                 </div>
@@ -137,6 +138,12 @@ export default function Applications() {
                                 <div className="bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer mb-6">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex-1">
+                                            <span
+                                                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mb-2 md:hidden ${getStatusColor(app.status)}`}
+                                            >
+                                                <Tag className="h-3 w-3 mr-1" />
+                                                {app.status}
+                                            </span>
                                             <h3 className="text-xl font-semibold text-card-foreground mb-2">
                                                 {app.role}
                                             </h3>
@@ -149,7 +156,7 @@ export default function Applications() {
                                                     <MapPin className="h-4 w-4" />
                                                     <span>{app.location}</span>
                                                 </div>
-                                                <div className="flex items-center space-x-1">
+                                                <div className="hidden md:flex items-center space-x-1">
                                                     <Calendar className="h-4 w-4" />
                                                     <span>Applied {formatDate(app.appliedDate)}</span>
                                                 </div>
@@ -162,7 +169,7 @@ export default function Applications() {
                                         </div>
                                         <div className="flex flex-col items-end space-y-2">
                                             <span
-                                                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(app.status)}`}
+                                                className={`hidden md:inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(app.status)}`}
                                             >
                                                 <Tag className="h-3 w-3 mr-1" />
                                                 {app.status}
