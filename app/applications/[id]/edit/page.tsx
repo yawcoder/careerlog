@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Timestamp, doc, updateDoc, getDoc } from "firebase/firestore";
+import { Timestamp, doc, updateDoc, getDoc, deleteDoc } from "firebase/firestore";
 import { useForm, Controller } from "react-hook-form";
 import { CalendarIcon, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth, db } from "@/app/firebaseConfig";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 
 interface JobApplicationInputs {
@@ -33,7 +33,9 @@ export default function EditApplication() {
     
     const [user, setUser] = useState<User | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [alertBox, setAlertBox] = useState(false);
+    const [deleteConfirmBox, setDeleteConfirmBox] = useState(false);
     const [alertMessage, setAlertMessage] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -141,11 +143,46 @@ export default function EditApplication() {
         }
     };
 
-    const handleAlertClose = () => {
+
+    const handleDelete = async () => {
+        if (!user || !applicationId) {
+            console.error("User not authenticated or application ID missing");
+            return;
+        }
+
+        setIsDeleting(true);
+
+        try {
+            // Delete the application from Firestore
+            const applicationDoc = doc(db, 'users', user.uid, 'applications', applicationId);
+            await deleteDoc(applicationDoc);
+
+            console.log("Application deleted successfully");
+            
+            // Show success message
+            setAlertMessage("Application deleted successfully!");
+            setIsSuccess(true);
+            setDeleteConfirmBox(false);
+            setAlertBox(true);
+            
+        } catch (error) {
+            console.error("Error deleting application: ", error);
+            
+            // Show error message
+            setAlertMessage("Error deleting application. Please try again.");
+            setIsSuccess(false);
+            setDeleteConfirmBox(false);
+            setAlertBox(true);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const handleDeleteAlertClose = () => {
         setAlertBox(false);
         if (isSuccess) {
-            // Redirect to application detail page on success
-            router.push(`/applications/${applicationId}`);
+            // Redirect to applications list on successful delete
+            router.push('/applications');
         }
     };
 
@@ -358,6 +395,19 @@ export default function EditApplication() {
                             Cancel
                         </Button>
                     </div>
+                    
+                    {/* Delete Button */}
+                    <div className="pt-6 border-t border-border">
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            className="w-full bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+                            onClick={() => setDeleteConfirmBox(true)}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? "Deleting..." : "Delete Application"}
+                        </Button>
+                    </div>
                 </form>
             </div>
             
@@ -370,8 +420,28 @@ export default function EditApplication() {
                         {alertMessage}
                     </AlertDialogDescription>
                     <AlertDialogFooter>
-                        <AlertDialogAction onClick={handleAlertClose}>
-                            {isSuccess ? "View Application" : "Try Again"}
+                        <AlertDialogAction onClick={handleDeleteAlertClose}>
+                            {isSuccess ? (alertMessage.includes("deleted") ? "Go to Applications" : "View Application") : "Try Again"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={deleteConfirmBox} onOpenChange={setDeleteConfirmBox}>
+                <AlertDialogContent>
+                    <AlertDialogTitle>Delete Application</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Are you sure you want to delete this application? This action cannot be undone.
+                    </AlertDialogDescription>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={handleDelete}
+                            className="bg-red-600 hover:bg-red-700"
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? "Deleting..." : "Delete"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
