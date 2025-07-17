@@ -17,6 +17,6 @@ export default function Settings (){
             }, [router]);
     
     return (
-        <div>Settings</div>
+        <div>Coming Soon</div>
     )
 }

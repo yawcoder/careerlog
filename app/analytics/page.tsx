@@ -17,6 +17,6 @@ export default function Analytics (){
         }, [router]);
 
     return (
-        <div>Analytics</div>
+        <div>Analytics: Coming Soon</div>
     )
 }
